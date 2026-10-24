@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Shared With Me — TrustVault{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 1.85rem; font-weight: 700; color: #fff;">Shared With Me</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Confidential documents granted to your account by document owners. You have authorized view and download privileges.
+        </p>
+    </div>
+</div>
+
+<div class="tv-card">
+    <div class="tv-table-wrapper">
+        <table class="tv-table">
+            <thead>
+                <tr>
+                    <th>Document</th>
+                    <th>Category</th>
+                    <th>File Details</th>
+                    <th>Document Owner</th>
+                    <th>Shared Date</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr>
+                    <td>
+                        <strong style="color: #fff; font-size: 0.95rem;">{{ doc.title }}</strong>
+                        <div style="font-size: 0.78rem; color: var(--text-dim);">{{ doc.original_filename }}</div>
+                        {% if doc.description %}
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">{{ doc.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="tv-badge tv-badge-owner">
+                            {{ doc.category.name if doc.category else 'General' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.88rem; color: #fff;">{{ doc.formatted_size }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);">{{ doc.file_type }}</div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <span class="tv-badge tv-badge-admin" style="font-size: 0.75rem;">
+                                {{ doc.owner.username }}
+                            </span>
+                        </div>
+                    </td>
+                    <td style="font-size: 0.82rem; color: var(--text-muted);">
+                        {{ doc.uploaded_at.strftime('%Y-%m-%d') }}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 0.4rem;">
+                            <a href="{{ url_for('main.download_document', doc_id=doc.id) }}" class="tv-btn tv-btn-emerald tv-btn-sm" title="Download Document">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Download
+                            </a>
+                            {% if doc.has_edit_access(current_user) %}
+                            <a href="{{ url_for('main.edit_document', doc_id=doc.id) }}" class="tv-btn tv-btn-outline tv-btn-sm" title="Edit Metadata">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                Edit
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 3rem;">
+                        No documents have been shared with your account yet. When a document owner grants you access, it will show up here immediately.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

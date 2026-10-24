@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In — TrustVault{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+    <div class="tv-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="tv-brand-icon" style="margin: 0 auto 1rem auto; width: 44px; height: 44px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h2 style="font-size: 1.6rem; font-weight: 700; color: #fff;">Welcome to TrustVault</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.35rem;">Sign in to access your secure document space</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('main.login') }}">
+            <div class="tv-form-group">
+                <label class="tv-label">Email or Username</label>
+                <input type="text" name="login_input" class="tv-input" placeholder="admin@trustvault.com or username" value="{{ login_input or '' }}" required autofocus>
+            </div>
+
+            <div class="tv-form-group">
+                <label class="tv-label">Password</label>
+                <input type="password" name="password" class="tv-input" placeholder="••••••••" required>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.85rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); cursor: pointer;">
+                    <input type="checkbox" name="remember" style="accent-color: var(--emerald-500);"> Remember session
+                </label>
+            </div>
+
+            <button type="submit" class="tv-btn tv-btn-emerald" style="width: 100%; padding: 0.75rem; font-size: 0.95rem;">
+                Sign In
+            </button>
+        </form>
+
+        <!-- Demo Quick-Fill Buttons -->
+        <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); text-align: center; margin-bottom: 0.75rem; font-weight: 600;">
+                Quick Demo Switcher
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                <button type="button" class="tv-btn tv-btn-outline tv-btn-sm" onclick="fillCreds('admin@trustvault.com', 'Admin@123')">
+                    Admin
+                </button>
+                <button type="button" class="tv-btn tv-btn-outline tv-btn-sm" onclick="fillCreds('owner@trustvault.com', 'Owner@123')">
+                    Owner
+                </button>
+                <button type="button" class="tv-btn tv-btn-outline tv-btn-sm" onclick="fillCreds('viewer@trustvault.com', 'Viewer@123')">
+                    Viewer
+                </button>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-muted);">
+            Don't have an account? <a href="{{ url_for('main.register') }}">Register here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function fillCreds(ident, pass) {
+    document.querySelector('input[name="login_input"]').value = ident;
+    document.querySelector('input[name="password"]').value = pass;
+}
+</script>
+{% endblock %}

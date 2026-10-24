@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management — TrustVault Admin{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+        <h1 style="font-size: 1.85rem; font-weight: 700; color: #fff;">User & Role Management</h1>
+        <span class="tv-badge tv-badge-admin">ADMINISTRATOR ACCESS</span>
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.92rem;">
+        Oversee registered tenants and modify role authorization boundaries across Admin, Owner, and Viewer.
+    </p>
+</div>
+
+<div class="tv-card">
+    <div class="tv-table-wrapper">
+        <table class="tv-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Email Address</th>
+                    <th>Current Role</th>
+                    <th>Registered At</th>
+                    <th style="text-align: right;">Modify Role Assignment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td style="font-family: monospace; color: var(--text-dim);">#{{ u.id }}</td>
+                    <td>
+                        <strong style="color: #fff;">{{ u.username }}</strong>
+                        {% if u.id == current_user.id %}
+                        <span class="tv-badge tv-badge-admin" style="font-size: 0.65rem; margin-left: 0.3rem;">You (Active)</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--text-muted);">{{ u.email }}</td>
+                    <td>
+                        <span class="tv-badge tv-badge-{{ u.role }}">
+                            {{ u.role.upper() }}
+                        </span>
+                    </td>
+                    <td style="font-size: 0.82rem; color: var(--text-dim);">
+                        {{ u.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td style="text-align: right;">
+                        {% if u.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('main.update_user_role', user_id=u.id) }}" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <select name="role" class="tv-select" style="width: auto; padding: 0.35rem 0.65rem; font-size: 0.82rem;">
+                                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="owner" {% if u.role == 'owner' %}selected{% endif %}>Owner</option>
+                                <option value="viewer" {% if u.role == 'viewer' %}selected{% endif %}>Viewer</option>
+                            </select>
+                            <button type="submit" class="tv-btn tv-btn-outline tv-btn-sm">Update</button>
+                        </form>
+                        {% else %}
+                        <span style="font-size: 0.8rem; color: var(--text-dim);">Current Admin Session</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

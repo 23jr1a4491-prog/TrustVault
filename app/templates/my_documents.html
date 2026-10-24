@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}My Documents — TrustVault{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 1.85rem; font-weight: 700; color: #fff;">My Documents</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+            {% if current_user.is_admin %}
+                Global document inventory across all users. Manage access, review owners, or delete files.
+            {% else %}
+                Documents uploaded and owned by you. Grant and revoke viewer access dynamically.
+            {% endif %}
+        </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('main.upload') }}" class="tv-btn tv-btn-emerald">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Upload New File
+        </a>
+    </div>
+</div>
+
+<div class="tv-card">
+    <div class="tv-table-wrapper">
+        <table class="tv-table">
+            <thead>
+                <tr>
+                    <th>Document</th>
+                    <th>Category</th>
+                    <th>Size & Type</th>
+                    <th>Shared With</th>
+                    <th>Uploaded Date</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr>
+                    <td>
+                        <strong style="color: #fff; font-size: 0.95rem;">{{ doc.title }}</strong>
+                        <div style="font-size: 0.78rem; color: var(--text-dim);">
+                            {{ doc.original_filename }} 
+                            {% if current_user.is_admin and doc.owner_id != current_user.id %}
+                                &bull; <span style="color: var(--accent-cyan);">Owner: {{ doc.owner.username }}</span>
+                            {% endif %}
+                        </div>
+                        {% if doc.description %}
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">{{ doc.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="tv-badge tv-badge-owner">
+                            {{ doc.category.name if doc.category else 'General' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.88rem; color: #fff;">{{ doc.formatted_size }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);">{{ doc.file_type }}</div>
+                    </td>
+                    <td>
+                        {% if doc.permissions %}
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                {% for perm in doc.permissions %}
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: rgba(255,255,255,0.03); padding: 0.2rem 0.5rem; border-radius: 4px;">
+                                    <div>
+                                        <span style="font-size: 0.8rem; color: var(--text-main);">{{ perm.user.username }}</span>
+                                        <span class="tv-badge tv-badge-{% if perm.permission_level == 'edit' %}warning{% else %}viewer{% endif %}" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; margin-left: 0.25rem;">
+                                            {{ perm.permission_level|upper }}
+                                        </span>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('main.manage_access', doc_id=doc.id) }}" style="display:inline;">
+                                        <input type="hidden" name="action_type" value="revoke">
+                                        <input type="hidden" name="target_user_id" value="{{ perm.user.id }}">
+                                        <button type="submit" title="Revoke access" style="background:none; border:none; color:var(--accent-danger); cursor:pointer; font-size:0.75rem;">&times;</button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span style="font-size: 0.8rem; color: var(--text-dim);">Private (Only You)</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.82rem; color: var(--text-muted);">
+                        {{ doc.uploaded_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 0.4rem;">
+                            <!-- Download -->
+                            <a href="{{ url_for('main.download_document', doc_id=doc.id) }}" class="tv-btn tv-btn-emerald tv-btn-sm" title="Download Document">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            </a>
+
+                            <!-- Edit Details -->
+                            <a href="{{ url_for('main.edit_document', doc_id=doc.id) }}" class="tv-btn tv-btn-outline tv-btn-sm" title="Edit Metadata">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </a>
+
+                            <!-- Manage Access Modal Trigger -->
+                            <button type="button" class="tv-btn tv-btn-outline tv-btn-sm" onclick="openShareModal('{{ doc.id }}', '{{ doc.title }}')" title="Grant or Manage Access">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                                Share
+                            </button>
+
+                            <!-- Delete Document -->
+                            <form method="POST" action="{{ url_for('main.delete_document', doc_id=doc.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete \'{{ doc.title }}\'? This action cannot be undone.');" style="display:inline;">
+                                <button type="submit" class="tv-btn tv-btn-danger tv-btn-sm" title="Delete Document">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 3rem;">
+                        No documents uploaded yet. Click <strong>Upload New File</strong> to get started!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Share / Manage Access Modal Dialog -->
+<div id="shareModal" class="tv-modal-backdrop">
+    <div class="tv-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.2rem; color: #fff;">Grant Access: <span id="modalDocTitle" style="color: var(--emerald-400);"></span></h3>
+            <button type="button" onclick="closeShareModal()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.4rem;">&times;</button>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">
+            Select a registered user to grant viewing permission. Only you as the document owner (or an administrator) have authorization to manage this access list.
+        </p>
+
+        <form id="shareForm" method="POST" action="">
+            <input type="hidden" name="action_type" value="grant">
+
+            <div class="tv-form-group">
+                <label class="tv-label">Select User to Share With</label>
+                <select name="target_user_id" class="tv-select" required>
+                    <option value="">-- Choose registered user --</option>
+                    {% for u in all_users %}
+                    <option value="{{ u.id }}">{{ u.username }} ({{ u.email }}) [{{ u.role }}]</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="tv-form-group">
+                <label class="tv-label">Permission Level</label>
+                <select name="permission_level" class="tv-select">
+                    <option value="view">Read Only (Can View & Download)</option>
+                    <option value="edit">Read & Edit (Can View, Download & Modify Details)</option>
+                </select>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="tv-btn tv-btn-outline" onclick="closeShareModal()">Cancel</button>
+                <button type="submit" class="tv-btn tv-btn-emerald">Grant Permission</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

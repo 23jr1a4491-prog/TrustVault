@@ -1,0 +1,22 @@
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded files and user data
+app/static/uploads/documents/*
+app/static/uploads/avatars/*
+
+# Environment secrets
+.env
+.env.*
+
+# Editor files
+.vscode/

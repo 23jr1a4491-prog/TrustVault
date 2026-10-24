@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Document Categories — TrustVault{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 1.85rem; font-weight: 700; color: #fff;">Document Categories</h1>
+    <p style="color: var(--text-muted); font-size: 0.92rem;">
+        Browse and organize sensitive enterprise records by department and classification tiers.
+    </p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+    {% for item in categories_data %}
+    <div class="tv-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+                <div class="tv-badge tv-badge-owner" style="margin-bottom: 0.5rem;">
+                    {{ item.doc_count }} {% if item.doc_count == 1 %}Document{% else %}Documents{% endif %}
+                </div>
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff;">{{ item.category.name }}</h2>
+            </div>
+            <div class="tv-brand-icon" style="width: 38px; height: 38px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem; min-height: 40px;">
+            {{ item.category.description }}
+        </p>
+
+        <!-- Preview documents in this category -->
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 0.85rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem;">
+                Files in this classification
+            </div>
+            {% if item.documents %}
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.85rem;">
+                    {% for doc in item.documents %}
+                    <li style="display: flex; justify-content: space-between; align-items: center; color: var(--text-muted);">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">
+                            {{ doc.title }}
+                        </span>
+                        <a href="{{ url_for('main.download_document', doc_id=doc.id) }}" style="color: var(--emerald-400); font-size: 0.8rem;">
+                            Download
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div style="font-size: 0.82rem; color: var(--text-dim);">No documents filed under this category yet.</div>
+            {% endif %}
+        </div>
+
+        <a href="{{ url_for('main.search', category=item.category.id) }}" class="tv-btn tv-btn-outline tv-btn-sm" style="width: 100%;">
+            Explore All in {{ item.category.name }} &rarr;
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

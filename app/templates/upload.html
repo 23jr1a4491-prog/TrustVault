@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Document — TrustVault{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 1.5rem auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.85rem; font-weight: 700; color: #fff;">Upload Document</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Upload a confidential document, assign a category tag, and optionally grant immediate viewer access.
+        </p>
+    </div>
+
+    <div class="tv-card">
+        <form method="POST" action="{{ url_for('main.upload') }}" enctype="multipart/form-data">
+            <!-- File Upload Area -->
+            <div class="tv-form-group">
+                <label class="tv-label">Select Document File</label>
+                <div style="border: 2px dashed var(--border-subtle); border-radius: var(--radius-lg); padding: 2rem; text-align: center; background: var(--bg-input); transition: border-color 0.2s;" ondragover="this.style.borderColor='var(--emerald-500)';" ondragleave="this.style.borderColor='var(--border-subtle)';">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--emerald-400)" stroke-width="1.8" style="margin-bottom: 0.75rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <div style="font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 0.25rem;">Choose a file or drag and drop it here</div>
+                    <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem;">Supports PDF, DOCX, XLSX, TXT, CSV, PNG, JPG, ZIP (Up to 32MB)</div>
+                    <input type="file" name="file" id="fileUploadInput" required style="display: none;">
+                    <button type="button" class="tv-btn tv-btn-outline tv-btn-sm" onclick="document.getElementById('fileUploadInput').click();">Browse Files</button>
+                    <div id="selectedFileName" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 500;"></div>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="tv-form-group">
+                <label class="tv-label">Document Title</label>
+                <input type="text" name="title" class="tv-input" placeholder="e.g. Q4 Financial Audit Report">
+                <span style="font-size: 0.75rem; color: var(--text-dim);">Leave blank to use original file name.</span>
+            </div>
+
+            <!-- Category -->
+            <div class="tv-form-group">
+                <label class="tv-label">Document Category</label>
+                <select name="category_id" class="tv-select">
+                    <option value="">-- Select Category --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }} — {{ cat.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Description -->
+            <div class="tv-form-group">
+                <label class="tv-label">Description / Summary (Optional)</label>
+                <textarea name="description" rows="3" class="tv-textarea" placeholder="Brief note on document sensitivity, scope, or contents..."></textarea>
+            </div>
+
+            <!-- Initial Viewer Permissions -->
+            <div class="tv-form-group" style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle);">
+                <label class="tv-label" style="font-size: 0.9rem; color: #fff;">Grant Immediate View Access (Optional)</label>
+                <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.75rem;">
+                    Check users who should be granted read-only download access immediately upon upload.
+                </p>
+
+                <div style="max-height: 160px; overflow-y: auto; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem;">
+                    {% for u in users %}
+                    <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.25rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <input type="checkbox" name="share_with" value="{{ u.id }}" style="accent-color: var(--emerald-500);">
+                            <span style="font-size: 0.88rem; color: #fff;">{{ u.username }}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-dim);">({{ u.email }})</span>
+                        </div>
+                        <span class="tv-badge tv-badge-{{ u.role }}" style="font-size: 0.7rem;">{{ u.role.upper() }}</span>
+                    </label>
+                    {% else %}
+                    <div style="font-size: 0.85rem; color: var(--text-dim); text-align: center; padding: 0.5rem;">No other registered users available yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.75rem;">
+                <a href="{{ url_for('main.my_documents') }}" class="tv-btn tv-btn-outline">Cancel</a>
+                <button type="submit" class="tv-btn tv-btn-emerald">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Upload & Secure Document
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

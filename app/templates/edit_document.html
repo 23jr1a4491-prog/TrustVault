@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Document — TrustVault{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 2rem auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.85rem; font-weight: 700; color: #fff;">Edit Document Details</h1>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Update metadata and categorization for this confidential record.
+        </p>
+    </div>
+
+    <div class="tv-card">
+        <div style="background: rgba(255,255,255,0.03); padding: 0.85rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600;">File Asset</span>
+                <div style="color: #fff; font-weight: 600; font-size: 0.92rem;">{{ doc.original_filename }}</div>
+            </div>
+            <div style="text-align: right;">
+                <span class="tv-badge tv-badge-admin">{{ doc.file_type }} &bull; {{ doc.formatted_size }}</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('main.edit_document', doc_id=doc.id) }}">
+            <div class="tv-form-group">
+                <label class="tv-label">Document Title</label>
+                <input type="text" name="title" class="tv-input" value="{{ doc.title }}" required>
+            </div>
+
+            <div class="tv-form-group">
+                <label class="tv-label">Category</label>
+                <select name="category_id" class="tv-select">
+                    <option value="">-- Uncategorized --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if doc.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="tv-form-group">
+                <label class="tv-label">Description / Summary</label>
+                <textarea name="description" rows="4" class="tv-textarea" placeholder="Update document notes, scope, or classification details...">{{ doc.description or '' }}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <a href="{{ url_for('main.my_documents') }}" class="tv-btn tv-btn-outline">Cancel</a>
+                <button type="submit" class="tv-btn tv-btn-emerald">Save Modifications</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

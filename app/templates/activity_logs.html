@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity & Audit Logs — TrustVault{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <h1 style="font-size: 1.85rem; font-weight: 700; color: #fff;">Activity & Audit Logs</h1>
+            <span class="tv-badge tv-badge-admin">CONFIDENTIAL ADMIN VAULT</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Tamper-evident audit trail capturing user logins, logouts, access modifications, and file lifecycle events.
+        </p>
+    </div>
+
+    <!-- Filter form -->
+    <form method="GET" action="{{ url_for('main.activity_logs') }}" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <select name="status" class="tv-select" style="width: auto; padding: 0.45rem 0.8rem; font-size: 0.85rem;">
+            <option value="">All Statuses</option>
+            <option value="SUCCESS" {% if selected_status == 'SUCCESS' %}selected{% endif %}>SUCCESS</option>
+            <option value="WARNING" {% if selected_status == 'WARNING' %}selected{% endif %}>WARNING</option>
+            <option value="FAILED" {% if selected_status == 'FAILED' %}selected{% endif %}>FAILED</option>
+        </select>
+
+        <input type="text" name="action" placeholder="Filter action (e.g. LOGIN)" value="{{ selected_action }}" class="tv-input" style="width: 180px; padding: 0.45rem 0.8rem; font-size: 0.85rem;">
+
+        <button type="submit" class="tv-btn tv-btn-emerald tv-btn-sm">Filter</button>
+        <a href="{{ url_for('main.activity_logs') }}" class="tv-btn tv-btn-outline tv-btn-sm">Reset</a>
+    </form>
+</div>
+
+<div class="tv-card">
+    <div class="tv-table-wrapper">
+        <table class="tv-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                    <th>Status</th>
+                    <th>User</th>
+                    <th>IP Address</th>
+                    <th>Event Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="font-size: 0.82rem; color: var(--text-dim); white-space: nowrap;">
+                        {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </td>
+                    <td>
+                        <span style="font-family: monospace; font-size: 0.85rem; font-weight: 600; color: #fff;">
+                            {{ log.action }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="tv-badge tv-badge-{% if log.status == 'SUCCESS' %}success{% elif log.status == 'WARNING' %}warning{% else %}danger{% endif %}">
+                            {{ log.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if log.user %}
+                            <span style="font-size: 0.88rem; color: #fff;">{{ log.user.username }}</span>
+                            <span class="tv-badge tv-badge-{{ log.user.role }}" style="font-size: 0.65rem; margin-left: 0.2rem;">{{ log.user.role }}</span>
+                        {% else %}
+                            <span style="font-size: 0.82rem; color: var(--text-dim);">Anonymous / System</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.82rem; font-family: monospace; color: var(--text-dim);">
+                        {{ log.ip_address }}
+                    </td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted); max-width: 320px;">
+                        {{ log.details }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 3rem;">
+                        No audit records found matching the specified criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
